@@ -20,7 +20,7 @@ Unfamiliar with DBSCAN? Start here: https://www.geeksforgeeks.org/dbscan-cluster
 1. Download dbscan_bash
 2. Run the following to enable execution:
 ~~~~
-chmod +x ./dbscan_bash.sh
+chmod +x ./dbscan.sh
 ~~~~
 3. Set your parameters in the script:
 - epsilon - the radius of of the neighborhood around each point. Points within this radius will be considered part of the same cluster.
