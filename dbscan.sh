@@ -1,13 +1,5 @@
 #!/bin/bash
 
-#issues:
-# 1. bash does not support sqrt natively and bc is not installed on all systems
-# 2. cannot compare floats with -le or -ge - found a workaround using an awk function (result=$(awk -v int="$integer" -v flt="$float" 'BEGIN { print (int < flt) ? "true" : "false" }'))
-# 3. cannot store arrays in arrays - difficult to track clusters as a result
-
-#good notes:
-# $(echo "$neighbors" | wc -l) $(echo $neighbors | wc -l) - difference is that the first one with " " around neighbors maintains newlines so the count is accurate. the one without " " does not maintain new lines so everything comes out as one line
-
 # This is a bash implementation of the DBSCAN algorithm.
 
 
@@ -17,9 +9,12 @@
 epsilon=3
 minPts=3
 sqrt_sensitivity=1
-byte_size=3
-verbose="trueq"
-very_verbose="trueq"
+trun_size=3
+verbose="false"
+very_verbose="false"
+
+
+### Points for Testing ###
 
 # points=(
 #     "1 1 1 1"
@@ -33,13 +28,12 @@ very_verbose="trueq"
 # )
 
 # points=(
-#     # .ppt files:
-#     "208 207 17 224 161 177 26 225 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 62 0 3 0 254 255 9 0 6 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 1 0 0 0 0 0 0 0 0 16 0 0 2 0 0 0 1 0 0 0 254 255 255 255 0 0 0 0 0 0 0 0 255 255 255 255 255 255 255 255 255 255 255 255 255 255 255 255 255 255 255 255"
-#     "208 207 17 224 161 177 26 225 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 62 0 3 0 254 255 9 0 6 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 1 0 0 0 0 0 0 0 0 16 0 0 2 0 0 0 1 0 0 0 254 255 255 255 0 0 0 0 0 0 0 0 255 255 255 255 255 255 255 255 255 255 255 255 255 255 255 255 255 255 255 255"
-#     "208 207 17 224 161 177 26 225 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 62 0 3 0 254 255 9 0 6 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 1 0 0 0 0 0 0 0 0 16 0 0 2 0 0 0 1 0 0 0 254 255 255 255 0 0 0 0 0 0 0 0 255 255 255 255 255 255 255 255 255 255 255 255 255 255 255 255 255 255 255 255"
-#     "208 207 17 224 161 177 26 225 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 62 0 3 0 254 255 9 0 6 0 0 0 0 0 0 0 0 0 0 0 19 0 0 0 0 0 0 0 0 0 0 0 0 16 0 0 174 6 0 0 1 0 0 0 254 255 255 255 0 0 0 0 1 0 0 0 9 0 0 0 97 4 0 0 110 1 0 0 111 1 0 0 112 1 0 0"
-#     "208 207 17 224 161 177 26 225 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 62 0 3 0 254 255 9 0 6 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 1 0 0 0 0 0 0 0 0 16 0 0 2 0 0 0 1 0 0 0 254 255 255 255 0 0 0 0 0 0 0 0 255 255 255 255 255 255 255 255 255 255 255 255 255 255 255 255 255 255 255 255"
-#     # .dll file:
+#  #   .catalogItem files:
+#     "123 34 99 97 116 97 108 111 103 73 116 101 109 34 58 123 34 101 110 116 114 121 73 100 34 58 34 123 50 48 65 50 52 65 50 55 45 51 57 55 54 45 52 65 69 48 45 66 69 68 51 45 67 51 55 65 55 55 50 49 50 69 69 52 125 34 44 34 117 115 101 114 83 73 68 34 58 34 83 45 49 45 53 45 49 56 34 44 34 117 115 101 114 73 100 101 110 116 105 116"
+#     "123 34 99 97 116 97 108 111 103 73 116 101 109 34 58 123 34 101 110 116 114 121 73 100 34 58 34 123 67 51 49 51 52 57 66 52 45 66 49 55 49 45 52 56 66 51 45 65 57 68 49 45 66 70 49 66 54 49 66 55 53 51 57 52 125 34 44 34 117 115 101 114 83 73 68 34 58 34 83 45 49 45 53 45 50 49 45 50 52 53 51 53 51 49 57 49 53 45 49 51"
+#     "123 34 99 97 116 97 108 111 103 73 116 101 109 34 58 123 34 101 110 116 114 121 73 100 34 58 34 123 57 65 48 55 70 66 66 70 45 53 53 68 53 45 52 51 68 48 45 65 53 70 53 45 67 49 67 57 49 66 52 68 50 54 55 70 125 34 44 34 117 115 101 114 83 73 68 34 58 34 83 45 49 45 53 45 50 49 45 50 52 53 51 53 51 49 57 49 53 45 49 51"
+#     "123 34 99 97 116 97 108 111 103 73 116 101 109 34 58 123 34 101 110 116 114 121 73 100 34 58 34 123 57 50 70 51 53 53 55 68 45 52 69 48 56 45 52 66 48 65 45 56 55 66 51 45 53 48 65 50 50 55 55 55 56 49 49 48 125 34 44 34 117 115 101 114 83 73 68 34 58 34 83 45 49 45 53 45 49 56 34 44 34 117 115 101 114 73 100 101 110 116 105 116"
+#  #   .dll file:
 #     "77 90 144 0 3 0 0 0 4 0 0 0 255 255 0 0 184 0 0 0 0 0 0 0 64 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 248 0 0 0 14 31 186 14 0 180 9 205 33 184 1 76 205 33 84 104 105 115 32 112 114 111 103 114 97 109 32 99 97 110 110 111 116 32 98 101"
 # )
 
@@ -101,20 +95,18 @@ points=(
 # )
 
 
-
-
 ### Functions ###
 
-# function filter_points_size will take the points array and limit the number of dimensions to the byte_size variable.
+# function filter_points_size will take the points array and truncate the number of dimensions to the trun_size variable.
 function filter_points_size() {
-    if [[ $size -le $byte_size ]]; then
-        echo "Points are already $size dimensions. No need to filter."
+    if [[ $size -le $trun_size ]]; then
+        echo "Points are already $size dimensions. No need to truncate."
         return
     fi
     for ((i=0; i<${#points[@]}; i++)); do
-        points[$i]=$(echo "${points[$i]}" | cut -d ' ' -f 1-$byte_size)
+        points[$i]=$(echo "${points[$i]}" | cut -d ' ' -f 1-$trun_size)
     done
-    echo "Points filtered to $byte_size dimensions."
+    echo "Points truncated to $trun_size dimensions."
 }
 
 # function get_size is called during the initialization of the script.
@@ -356,6 +348,8 @@ function define_calc() {
 
 ### Execution ###
 
+start_time=$(date +%s)
+
 declare -a neighbors
 
 declare -i num_dimensions=0
@@ -372,19 +366,6 @@ define_calc
 
 dbscan
 
-### Testing ###
+end_time=$(date +%s)
 
-
-
-# sqrt_calc 14
-
-# calc_distance "${points[0]}" "${points[1]}"
-
-# neighbors=$(get_neighbors "${points[@]}" "${points[0]}")
-# echo "${#neighbors[@]}"
-# echo "$neighbors" | sed -n '1p'
-# echo "${neighbors[@]}"
-
-# echo $(get_neighbors 17)
-
-# calc_distance "${points[3]}" "${points[4]}"
+echo "Clustering completed in $((end_time-start_time)) seconds."
