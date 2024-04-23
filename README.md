@@ -13,7 +13,7 @@ This is a DBSCAN implementation written completely in Bash (shell).
 
 ## How to Use
 
-In it's current state, this script requires input as an array of strings as n-dimensional points. As mentioned above, though, this is completely changeable by the user. Future versions of this script may use a different format. Four test sets of points are included in the first few lines of code for user testing (comment/uncomment to activate which set of points to use).
+In its current state, this script requires input as an array of strings of n-dimensional points. As mentioned above, though, this is completely changeable by the user. Future versions of this script may use a different format. Four test sets of points are included in the first few lines of code for user testing (comment/uncomment to activate which set of points to use).
 
 Unfamiliar with DBSCAN? Start here: https://www.geeksforgeeks.org/dbscan-clustering-in-ml-density-based-clustering/
 
